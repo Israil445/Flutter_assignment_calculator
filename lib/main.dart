@@ -1,146 +1,87 @@
-import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(CalculatorApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class CalculatorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
-      child: MaterialApp(
-        title: 'Namer App',
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-        ),
-        home: MyHomePage(),
-      ),
+    return MaterialApp(
+      home: CalculatorScreen(),
     );
   }
 }
 
-class MyAppState extends ChangeNotifier {
-  var current = WordPair.random();
-
-  void getNext() {
-    current = WordPair.random();
-    notifyListeners();
-  }
-
-  var favorites = <WordPair>[];
-
-  void toggleFavorite() {
-    if (favorites.contains(current)) {
-      favorites.remove(current);
-    } else {
-      favorites.add(current);
-    }
-    notifyListeners();
-  }
+class CalculatorScreen extends StatefulWidget {
+  @override
+  // ignore: library_private_types_in_public_api
+  _CalculatorScreenState createState() => _CalculatorScreenState();
 }
 
-class MyHomePage extends StatefulWidget {
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+class _CalculatorScreenState extends State<CalculatorScreen> {
+  String _displayText = '';
 
-class _MyHomePageState extends State<MyHomePage> {
-  var selectedIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget page;
-    switch (selectedIndex) {
-      case 0:
-        page = GeneratorPage();
-        break;
-      case 1:
-        page = FavoritesPage();
-        break;
-      default:
-        throw UnimplementedError('no widget for $selectedIndex');
-    }
-
-    return LayoutBuilder(builder: (context, constraints) {
-      return Scaffold(
-        body: Row(
-          children: [
-            SafeArea(
-              child: NavigationRail(
-                extended: constraints.maxWidth >= 600,
-                destinations: [
-                  NavigationRailDestination(
-                    icon: Icon(Icons.home),
-                    label: Text('Home'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.favorite),
-                    label: Text('Favorites'),
-                  ),
-                ],
-                selectedIndex: selectedIndex,
-                onDestinationSelected: (value) {
-                  setState(() {
-                    selectedIndex = value;
-                  });
-                },
-              ),
-            ),
-            Expanded(
-              child: Container(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                child: page,
-              ),
-            ),
-          ],
-        ),
-      );
+  void _onButtonPressed(String buttonText) {
+    setState(() {
+      if (buttonText == '=') {
+        // Perform calculation logic here
+      } else if (buttonText == 'C') {
+        _displayText = '';
+      } else {
+        _displayText += buttonText;
+      }
     });
   }
-}
 
-class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-    var pair = appState.current;
-
-    IconData icon;
-    if (appState.favorites.contains(pair)) {
-      icon = Icons.favorite;
-    } else {
-      icon = Icons.favorite_border;
-    }
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Calculator'),
+      ),
+      body: Column(
         children: [
-          BigCard(pair: pair),
-          SizedBox(height: 10),
+          Expanded(
+            child: Container(
+              alignment: Alignment.bottomRight,
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                _displayText,
+                style: TextStyle(fontSize: 36.0),
+              ),
+            ),
+          ),
           Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  appState.toggleFavorite();
-                },
-                icon: Icon(icon),
-                label: Text('Like'),
-              ),
-              SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {
-                  appState.getNext();
-                },
-                child: Text('Next'),
-              ),
+              CalculatorButton(text: '7', onPressed: _onButtonPressed),
+              CalculatorButton(text: '8', onPressed: _onButtonPressed),
+              CalculatorButton(text: '9', onPressed: _onButtonPressed),
+              CalculatorButton(text: 'x', onPressed: _onButtonPressed),
+            ],
+          ),
+          Row(
+            children: [
+              CalculatorButton(text: '4', onPressed: _onButtonPressed),
+              CalculatorButton(text: '5', onPressed: _onButtonPressed),
+              CalculatorButton(text: '6', onPressed: _onButtonPressed),
+              CalculatorButton(text: '-', onPressed: _onButtonPressed),
+            ],
+          ),
+          Row(
+            children: [
+              CalculatorButton(text: '1', onPressed: _onButtonPressed),
+              CalculatorButton(text: '2', onPressed: _onButtonPressed),
+              CalculatorButton(text: '3', onPressed: _onButtonPressed),
+              CalculatorButton(text: '+', onPressed: _onButtonPressed),
+            ],
+          ),
+          Row(
+            children: [
+              CalculatorButton(text: 'C', onPressed: _onButtonPressed),
+              CalculatorButton(text: '0', onPressed: _onButtonPressed),
+              CalculatorButton(text: '=', onPressed: _onButtonPressed),
+              CalculatorButton(text: '/', onPressed: _onButtonPressed),
             ],
           ),
         ],
@@ -149,59 +90,22 @@ class GeneratorPage extends StatelessWidget {
   }
 }
 
-class BigCard extends StatelessWidget {
-  const BigCard({
-    super.key,
-    required this.pair,
-  });
+class CalculatorButton extends StatelessWidget {
+  final String text;
+  final Function(String) onPressed;
 
-  final WordPair pair;
+  CalculatorButton({required this.text, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final style = theme.textTheme.displayMedium!.copyWith(
-      color: theme.colorScheme.onPrimary,
-    );
-
-    return Card(
-      color: theme.colorScheme.primary,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
+    return Expanded(
+      child: ElevatedButton(
+        onPressed: () {},
         child: Text(
-          pair.asLowerCase,
-          style: style,
-          semanticsLabel: "${pair.first} ${pair.second}",
+          text,
+          style: TextStyle(fontSize: 24.0),
         ),
       ),
-    );
-  }
-}
-
-class FavoritesPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-
-    if (appState.favorites.isEmpty) {
-      return Center(
-        child: Text('No favorites yet.'),
-      );
-    }
-
-    return ListView(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Text('You have '
-              '${appState.favorites.length} favorites:'),
-        ),
-        for (var pair in appState.favorites)
-          ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text(pair.asLowerCase),
-          ),
-      ],
     );
   }
 }
